@@ -1,0 +1,116 @@
+from datetime import datetime
+from typing import TYPE_CHECKING, Optional
+
+from sqlalchemy import JSON, Column, DateTime, String
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
+
+from agents.constants import MAX_EMBEDDING_DIM
+from agents.orm.custom_columns import CommonVector, EmbeddingConfigColumn
+from agents.orm.mixins import DeploymentMixin
+from agents.orm.sqlalchemy_base import SqlalchemyBase
+from agents.schemas.semantic_memory import (
+    SemanticMemoryItem as PydanticSemanticMemoryItem,
+)
+from agents.settings import settings
+from agents.utils.utc import utcnow
+
+if TYPE_CHECKING:
+    pass
+
+
+class SemanticMemoryItem(SqlalchemyBase, DeploymentMixin):
+    """
+    Stores semantic memory entries that represent general knowledge,
+    concepts, facts, and language elements that can be accessed without
+    relying on specific contextual experiences.
+
+    Attributes:
+        id: Unique ID for this semantic memory entry.
+        name: The name of the concept or the object (e.g., "MemoryLLM", "Jane").
+        summary: A concise summary of the concept or the object.
+        details: A more detailed explanation or contextual description.
+        source: The reference or origin of the information (e.g., book, article, movie).
+        metadata_: Arbitrary additional metadata as a JSON object.
+        created_at: Timestamp indicating when the entry was created.
+    """
+
+    __tablename__ = "semantic_memory"
+    __pydantic_model__ = PydanticSemanticMemoryItem
+
+    # Primary key
+    id: Mapped[str] = mapped_column(
+        String, primary_key=True, doc="Unique ID for this semantic memory entry"
+    )
+
+    # The name of the concept or the object
+    name: Mapped[str] = mapped_column(
+        String, doc="The title or main concept for the knowledge entry"
+    )
+
+    # A concise summary of the concept
+    summary: Mapped[str] = mapped_column(
+        String, doc="A concise summary of the concept or the object."
+    )
+
+    # Detailed explanation or extended context about the concept
+    details: Mapped[str] = mapped_column(
+        String, doc="Detailed explanation or additional context for the concept"
+    )
+
+    # Reference or source of the general knowledge (e.g., book, article, or movie)
+    source: Mapped[str] = mapped_column(
+        String,
+        doc="The reference or origin of this information (e.g., book, article, or movie)",
+    )
+
+    # Hierarchical tree path for categorization (e.g., ["favorites", "pets", "dog"])
+    tree_path: Mapped[list] = mapped_column(
+        JSON,
+        default=list,
+        nullable=False,
+        doc="Hierarchical categorization path as an array of strings (e.g., ['favorites', 'pets', 'dog'])",
+    )
+
+    # Additional arbitrary metadata stored as a JSON object
+    metadata_: Mapped[dict] = mapped_column(
+        JSON,
+        default=dict,
+        nullable=True,
+        doc="Additional arbitrary metadata as a JSON object",
+    )
+
+    # When was this item last modified and what operation?
+    last_modify: Mapped[dict] = mapped_column(
+        JSON,
+        nullable=False,
+        default=lambda: {
+            "timestamp": utcnow().isoformat(),
+            "operation": "created",
+        },
+        doc="Last modification info including timestamp and operation type",
+    )
+
+    # Timestamp indicating when this entry was created
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=utcnow,
+        nullable=False,
+        doc="Timestamp when this semantic memory entry was created",
+    )
+
+    embedding_config: Mapped[Optional[dict]] = mapped_column(
+        EmbeddingConfigColumn, nullable=True, doc="Embedding configuration"
+    )
+
+    # Vector embedding field based on database type
+    if settings.agents_pg_uri_no_default:
+        from pgvector.sqlalchemy import Vector
+
+        details_embedding = mapped_column(Vector(MAX_EMBEDDING_DIM), nullable=True)
+        name_embedding = mapped_column(Vector(MAX_EMBEDDING_DIM), nullable=True)
+        summary_embedding = mapped_column(Vector(MAX_EMBEDDING_DIM), nullable=True)
+    else:
+        details_embedding = Column(CommonVector, nullable=True)
+        name_embedding = Column(CommonVector, nullable=True)
+        summary_embedding = Column(CommonVector, nullable=True)
+

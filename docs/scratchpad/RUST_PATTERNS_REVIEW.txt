@@ -1,0 +1,215 @@
+# ScreenPipe Rust Codebase - Critical Patterns Review
+
+## EXECUTIVE SUMMARY
+This review identifies 11 high-value architectural patterns in screenpipe Rust codebase to preserve.
+
+## 1. STORAGE ABSTRACTION PATTERN
+Files: screenpipe-storage/src/trait_def.rs, postgres.rs, local.rs, lib.rs (600+ LOC)
+Value: HIGH - Production architecture
+
+Pattern: Trait-based abstraction enabling swappable backends (PostgreSQL vs Local DuckDB+RocksDB)
+
+Key Details:
+- PostgreSQL uses 16-bit hash prefix for quick duplicate filtering
+- Local storage uses DuckDB (cold) + RocksDB (hot cache) hybrid
+- Status tracking: Pending=0, Processed=1, Failed=2, Skipped=3
+- RocksDB tuning: 64MB write buffer, LZ4 compression
+
+Should Preserve: YES - ENTIRE
+
+## 2. MULTI-ENGINE OCR ORCHESTRATION
+Files: screenpipe-vision/src/core.rs, utils.rs, tesseract.rs, apple.rs, microsoft.rs, custom_ocr.rs (800+ LOC)
+Value: HIGH - Cross-platform
+
+Pattern: Strategy pattern for OCR with runtime engine selection
+
+Key Tuning:
+- Tesseract: PSM=1 (automatic segmentation), OEM=1 (LSTM), DPI=600
+- Confidence: Per-word aggregation to overall score
+- Formats: Plain text + JSON with per-line confidence
+- Languages: 76 languages with mappings to Tesseract/Apple/ISO codes
+
+Should Preserve: YES - ENTIRE
+
+## 3. FRAME DEDUPLICATION ALGORITHM
+Files: screenpipe-storage/src/dedup.rs (47 lines)
+Value: HIGH - Efficient similarity detection
+
+Algorithm: Perceptual hashing (pHash64) + Hamming distance
+
+Key Details:
+- 8x8 grayscale resize, average-based bitmask
+- 16-bit prefix (hash >> 48) for fast candidate filtering
+- Threshold: 10 bits difference = similar
+- Stores prefix in DB for indexed queries
+
+Should Preserve: YES - ENTIRE
+
+## 4. CONTINUOUS CAPTURE WITH INTELLIGENT FRAME SELECTION
+Files: screenpipe-vision/src/core.rs (lines 147-310)
+Value: MEDIUM - Computational optimization
+
+Algorithm:
+1. Skip frames with low change (<0.006 combined metric)
+2. Track "max average" frame (most interesting) in sliding window
+3. Process max frame when significant change detected
+
+Hybrid Comparison Metric:
+- Histogram difference (global changes)
+- SSIM difference (local structure)
+- Average: (histogram_diff + ssim_diff) / 2.0
+
+Key Tuning:
+- Skip threshold: 0.006 - carefully balanced
+- Combines two complementary metrics
+- Reduces OCR load 70%+ on static screens
+
+Should Preserve: YES - Core functions
+
+## 5. ASYNC WORKER PATTERN
+Files: screenpipe-server/src/workers/ocr.rs (135 LOC), window_context.rs (129 LOC)
+Value: MEDIUM - Tokio best practices
+
+Pattern: Batch processing with spawn_blocking for CPU tasks
+
+Key Patterns:
+- spawn_blocking for CPU-bound Tesseract
+- Per-frame error handling (doesn't crash worker)
+- Batch processing prevents memory overload
+- Status tracking enables fault tolerance
+
+Should Preserve: YES - Patterns
+
+## 6. WINDOW CAPTURE & FILTERING
+Files: screenpipe-vision/src/capture_screenshot_by_window.rs (200+ LOC), monitor.rs (139 LOC)
+Value: MEDIUM - Cross-platform
+
+Platform-Specific Skip Lists (for system UI filtering):
+- macOS: Filters Dock, NotificationCenter, Spotlight, Control Center, etc.
+- Windows: Filters TaskBar, Cortana, StartMenu, Explorer, etc.
+- Linux: Filters Gnome-shell, Plasma, Polybar, i3bar, etc.
+
+SafeMonitor Pattern:
+- Wraps xcap::Monitor safely
+- Stores metadata in Arc<MonitorData> for cheap clones
+- Validates dimensions before processing
+- Spawns blocking thread for xcap operations
+
+Should Preserve: YES - ENTIRE
+
+## 7. IMAGE STORAGE WITH RETENTION
+Files: screenpipe-storage/src/images.rs (178 LOC)
+Value: MEDIUM - File management
+
+Features:
+- Date-based folder organization (YYYY-MM-DD)
+- Filename: frame_{timestamp_millis}.jpg
+- JPEG quality=85 (optimal for OCR)
+- Efficient cleanup by date folders
+- Recursive size calculation
+
+Should Preserve: YES - ENTIRE
+
+## 8. BROWSER URL DETECTION
+Files: screenpipe-vision/src/browser_utils/mod.rs (35 LOC) + platform impls
+Value: LOW-MEDIUM - Optional feature
+
+Pattern: Platform-specific trait with factory
+
+Browser List: Chrome, Firefox, Safari, Edge, Brave, Arc, Chromium, Vivaldi, Opera
+
+Should Preserve: YES - Trait pattern
+
+## 9. LANGUAGE SUPPORT INFRASTRUCTURE
+Files: screenpipe-core/src/language.rs (334 LOC)
+Value: MEDIUM - Reference data
+
+Comprehensive Support:
+- 76 languages across multiple writing systems
+- Multiple code systems: ISO 639-1 (en), Tesseract (eng), Apple (en-US)
+- Full enum with Display + serde support
+- Mapping tables: TESSERACT_LANGUAGES[76]
+
+Should Preserve: YES - ENTIRE
+
+## 10. CUSTOM SERDE IMPLEMENTATIONS
+Files: screenpipe-vision/src/core.rs (lines 35-102)
+Value: MEDIUM - Complex type serialization
+
+Image Serialization:
+- JPEG encode -> Base64 for transport
+- Quality=80 for compression
+- Preserves Option<DynamicImage>
+
+Instant Serialization:
+- Serializes as milliseconds since epoch
+- Deserializes back to Instant with proper offset
+- Enables timing analytics
+
+Should Preserve: YES - Functions
+
+## 11. ERROR HANDLING PATTERNS
+Files: Throughout (core.rs, utils.rs, etc.)
+Value: MEDIUM - Domain-specific errors
+
+Domain Error Enum:
+- MonitorNotFound
+- ErrorCapturingScreenshot(String)
+- ErrorProcessingOcr(String)
+- ErrorSendingOcrResult(String)
+
+Channel Health Checks (core.rs, line 469):
+- Detects receiver capacity issues
+- Identifies closed channels
+- Distinguishes normal errors from system state changes
+
+Should Preserve: YES - Patterns
+
+## CRITICAL TUNING VALUES
+
+Frame skip threshold: 0.006 (balance noise vs missed changes)
+Hamming distance threshold: 10 (hash similarity on 64-bit phash)
+JPEG quality: 85 (OCR text clarity minimum)
+RocksDB write buffer: 64MB (hot cache performance)
+Tesseract DPI: 600 (screen capture optimization)
+Tesseract PSM: 1 (automatic page segmentation)
+Tesseract OEM: 1 (LSTM engine only)
+
+## CRITICAL KNOWLEDGE AT RISK
+
+1. Language mapping tables - Tesseract/Apple/ISO codes took time to compile
+2. OCR confidence aggregation - Per-word to overall score algorithm
+3. Platform skip lists - System UI filtering for each OS
+4. Frame selection heuristics - Why 0.006 works
+5. Hash prefix optimization - Why 16-bit prefix works
+6. RocksDB/DuckDB hybrid - When to use each database
+7. spawn_blocking usage - Why not just run Tesseract directly
+
+## FILES TO ARCHIVE (4000+ LOC total)
+
+screenpipe-storage/src/:
+  - trait_def.rs (200 LOC) PRESERVE
+  - postgres.rs (400+ LOC) PRESERVE
+  - local.rs (400+ LOC) PRESERVE
+  - images.rs (180 LOC) PRESERVE
+  - dedup.rs (47 LOC) PRESERVE
+  - lib.rs (70 LOC) PRESERVE
+
+screenpipe-vision/src/:
+  - core.rs (595 LOC) PRESERVE (main functions)
+  - utils.rs (143 LOC) PRESERVE
+  - tesseract.rs (119 LOC) PRESERVE
+  - apple.rs (200+ LOC) PRESERVE
+  - microsoft.rs (50 LOC) PRESERVE
+  - custom_ocr.rs (95 LOC) PRESERVE
+  - monitor.rs (139 LOC) PRESERVE
+  - capture_screenshot_by_window.rs (200+ LOC) PRESERVE
+  - browser_utils/ PRESERVE (trait pattern)
+
+screenpipe-server/src/workers/:
+  - ocr.rs (135 LOC) PRESERVE (pattern)
+  - window_context.rs (129 LOC) PRESERVE (pattern)
+
+screenpipe-core/src/:
+  - language.rs (334 LOC) PRESERVE
+
