@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from tqdm import tqdm
 
-from agents.utils.utc import utcnow
+from agents.utc import utcnow
 from agents.agent.app_constants import (
     GEMINI_MODELS,
     SKIP_META_MEMORY_MANAGER,

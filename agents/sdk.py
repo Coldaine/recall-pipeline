@@ -364,7 +364,7 @@ class Agents:
             else:
                 print(f"Backup failed: {result['error']}")
         """
-        from agents.utils.utc import utcnow
+        from agents.utc import utcnow
 
         if not path:
             path = f"./mirix_backup_{utcnow().strftime('%Y%m%d_%H%M%S')}"

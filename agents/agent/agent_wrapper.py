@@ -10,7 +10,7 @@ from datetime import datetime
 import pytz
 import yaml
 
-from agents.utils.utc import utcnow
+from agents.utc import utcnow
 from dotenv import load_dotenv
 from google import genai
 from PIL import Image
@@ -473,25 +473,9 @@ class AgentWrapper:
 
                 print("✅ PostgreSQL database restored successfully!")
 
-            # Handle SQLite restoration
+            # Handle SQLite restoration - REMOVED
             elif backup_type == "sqlite":
-                print("📁 Restoring SQLite database...")
-                sqlite_backup = folder / "sqlite.db"
-                if not sqlite_backup.exists():
-                    raise ValueError(f"SQLite backup file not found in {folder_path}")
-
-                sqlite_dest = Path.home() / ".mirix" / "sqlite.db"
-
-                # Ensure destination directory exists
-                sqlite_dest.parent.mkdir(parents=True, exist_ok=True)
-
-                # Copy the database file
-                shutil.copyfile(sqlite_backup, sqlite_dest)
-                import os
-
-                os.chmod(sqlite_dest, 0o666)  # Make it writable
-
-                print("✅ SQLite database restored successfully!")
+                raise ValueError("SQLite backup restoration is no longer supported. Please use PostgreSQL.")
 
         except Exception as e:
             print(f"❌ Database restoration failed: {str(e)}")

@@ -2,7 +2,7 @@ import re
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from agents.utils.utc import utcnow
+from agents.utc import utcnow
 
 
 def parse_formatted_time(formatted_time):

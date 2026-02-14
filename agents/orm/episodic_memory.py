@@ -10,7 +10,7 @@ from agents.orm.mixins import DeploymentMixin
 from agents.orm.sqlalchemy_base import SqlalchemyBase
 from agents.schemas.episodic_memory import EpisodicEvent as PydanticEpisodicEvent
 from agents.settings import settings
-from agents.utils.utc import utcnow
+from agents.utc import utcnow
 
 if TYPE_CHECKING:
     pass

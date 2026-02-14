@@ -5,7 +5,7 @@ from typing import List, Optional
 from agents.orm.file import FileMetadata as FileMetadataModel
 from agents.schemas.file import FileMetadata as PydanticFileMetadata
 from agents.utils import enforce_types
-from agents.utils.utc import utcnow
+from agents.utc import utcnow
 
 
 class FileManager:

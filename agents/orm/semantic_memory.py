@@ -12,7 +12,7 @@ from agents.schemas.semantic_memory import (
     SemanticMemoryItem as PydanticSemanticMemoryItem,
 )
 from agents.settings import settings
-from agents.utils.utc import utcnow
+from agents.utc import utcnow
 
 if TYPE_CHECKING:
     pass

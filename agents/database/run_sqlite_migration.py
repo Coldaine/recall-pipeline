@@ -11,7 +11,7 @@ import sys
 import uuid
 from datetime import datetime
 
-from agents.utils.utc import utcnow
+from agents.utc import utcnow
 
 
 def backup_database(db_path):
