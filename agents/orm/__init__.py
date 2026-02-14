@@ -18,3 +18,4 @@ from agents.orm.secret import Secret
 from agents.orm.step import Step
 from agents.orm.tool import Tool
 from agents.orm.tools_agents import ToolsAgents
+from agents.orm.user import User
