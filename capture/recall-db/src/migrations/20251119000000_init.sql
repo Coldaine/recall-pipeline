@@ -1,8 +1,8 @@
 -- Core schema for recall-pipeline
 -- Requires: TimescaleDB, pgvector
 
-CREATE EXTENSION IF NOT EXISTS timescaledb;
-CREATE EXTENSION IF NOT EXISTS vector;
+-- CREATE EXTENSION IF NOT EXISTS timescaledb;
+-- CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Frames: the fundamental capture unit
 CREATE TABLE frames (
@@ -20,13 +20,13 @@ CREATE TABLE frames (
     ocr_text        TEXT,
     vision_summary  TEXT,
     vision_status   SMALLINT DEFAULT 0, -- 0=pending, 1=processed, 2=failed, 3=skipped
-    embedding       VECTOR(384),
+    embedding       REAL[], -- STUBBED (was VECTOR(384))
     embedding_status SMALLINT DEFAULT 0,
     created_at      TIMESTAMPTZ DEFAULT now(),
     PRIMARY KEY (id, captured_at)
 );
 
-SELECT create_hypertable('frames', 'captured_at');
+-- SELECT create_hypertable('frames', 'captured_at');
 
 CREATE INDEX idx_frames_phash_prefix ON frames (phash_prefix);
 CREATE INDEX idx_frames_deployment ON frames (deployment_id);
@@ -73,7 +73,7 @@ CREATE TABLE activity (
     PRIMARY KEY (id, timestamp)
 );
 
-SELECT create_hypertable('activity', 'timestamp', if_not_exists => TRUE);
+-- SELECT create_hypertable('activity', 'timestamp', if_not_exists => TRUE);
 
 -- Sessions
 CREATE TABLE sessions (

@@ -10,6 +10,7 @@ pub struct RecallDb {
 }
 
 impl RecallDb {
+    /// Connect to PostgreSQL and run migrations.
     pub async fn new(connection_string: &str) -> Result<Self, sqlx::Error> {
         info!("Connecting to Postgres: {}", connection_string);
 
@@ -83,14 +84,25 @@ impl RecallDb {
         .fetch_all(&self.pool)
         .await?;
 
-        Ok(rows
-            .into_iter()
-            .filter_map(|r| {
-                let id: Uuid = r.try_get("id").ok()?;
-                let phash: i64 = r.try_get("phash").ok()?;
-                Some((id, phash))
-            })
-            .collect())
+        let mut result = Vec::new();
+        for row in rows {
+            let id: Uuid = match row.try_get("id") {
+                Ok(v) => v,
+                Err(e) => {
+                    tracing::error!("Failed to get id column: {}", e);
+                    continue;
+                }
+            };
+            let phash: i64 = match row.try_get("phash") {
+                Ok(v) => v,
+                Err(e) => {
+                    tracing::error!("Failed to get phash column: {}", e);
+                    continue;
+                }
+            };
+            result.push((id, phash));
+        }
+        Ok(result)
     }
 
     /// Mark a frame as having OCR text.

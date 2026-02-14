@@ -39,6 +39,8 @@ pub struct PgStorage {
 
 impl PgStorage {
     /// Connect to Postgres and run migrations.
+    ///
+    /// TODO: Add integration tests. See TESTING_TODOS_RUST.md section 3.2 for details.
     pub async fn new(database_url: &str) -> Result<Self> {
         let db = RecallDb::new(database_url)
             .await
@@ -115,11 +117,15 @@ impl Storage for PgStorage {
             .await
             .context("Failed to fetch phash candidates")?;
 
+        info!(?prefix, ?since, count = candidates.len(), "Checking duplicates");
+
         for (id, candidate_hash) in &candidates {
-            if hamming_distance(phash, *candidate_hash) <= DEDUP_THRESHOLD {
-                debug!(
+            let dist = hamming_distance(phash, *candidate_hash);
+            info!(?id, ?dist, "Checking candidate");
+            if dist <= DEDUP_THRESHOLD {
+                info!(
                     existing_id = %id,
-                    distance = hamming_distance(phash, *candidate_hash),
+                    distance = dist,
                     "Duplicate frame detected"
                 );
                 return Ok(Some(*id));
@@ -461,5 +467,31 @@ impl Storage for PgStorage {
 
         debug!(frame_id = %frame_id, ?status, "Vision summary updated");
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hamming_distance() {
+        assert_eq!(hamming_distance(0, 0), 0);
+        assert_eq!(hamming_distance(0, -1), 64); // All bits different
+        assert_eq!(hamming_distance(1, 2), 2);   // 01 vs 10
+        assert_eq!(hamming_distance(0xF0, 0x0F), 8);
+    }
+
+    #[test]
+    fn test_hash_prefix() {
+        // 0x1234_5678_9ABC_DEF0
+        let hash: i64 = 0x1234_5678_9ABC_DEF0; // Note: i64 might interpret this as negative if high bit set
+        
+        // Manual calc:
+        // 0x1234_5678_9ABC_DEF0 >> 48 = 0x1234
+        // 0x1234 & 0xFFFF = 0x1234
+        let expected = 0x1234;
+        
+        assert_eq!(hash_prefix(hash), expected);
     }
 }

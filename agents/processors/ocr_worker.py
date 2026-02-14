@@ -167,6 +167,18 @@ class OCRWorker:
 
         Returns:
             PIL Image object or None if loading fails.
+        
+        TODO: Add integration tests for file I/O edge cases:
+          - Test loading from absolute file:// URI
+          - Test loading from relative file:// URI
+          - Test with missing file (should return None)
+          - Test with corrupted/invalid image files
+          - Test with insufficient permissions (read-protected file)
+          - Test with symlinks
+          - Test with very large image files
+          - Test with various image formats (PNG, JPEG, GIF, BMP)
+          - Verify error messages are logged correctly
+          - Test thread-safety with concurrent load attempts
         """
         try:
             # Handle file:// URIs
@@ -196,6 +208,23 @@ class OCRWorker:
 
         Returns:
             Tuple of (extracted_text, confidence) or ("", None) on failure.
+        
+        TODO: Add integration tests for Tesseract OCR:
+          - Test with actual test images containing known text
+          - Test text extraction accuracy (expected vs actual)
+          - Test confidence scoring (validate range 0-100)
+          - Test with different languages (lang parameter)
+          - Test with various image quality levels:
+            * Clear/high contrast text
+            * Blurry/low contrast text
+            * Rotated text
+            * Handwriting
+          - Test with multi-language images
+          - Test with config parameter variations
+          - Test with images containing no text
+          - Test performance/throughput (ms per image)
+          - Verify confidence calculation is meaningful
+          - Test error handling when Tesseract fails
         """
         if not self._check_tesseract():
             raise RuntimeError("Tesseract OCR is not available")
@@ -401,6 +430,24 @@ class OCRWorker:
 
         Continuously polls for unprocessed frames and runs OCR.
         Runs until stopped via the running flag or KeyboardInterrupt.
+        
+        TODO: Add integration test for the polling loop:
+          - Test that worker continuously fetches pending frames
+          - Test that batch_size is respected (fetches N frames per cycle)
+          - Test that poll_interval is respected (waits between cycles)
+          - Test graceful shutdown with asyncio.CancelledError
+          - Test recovery after database connection errors
+          - Test handling of transient Postgres errors
+          - Verify log output for debugging
+        
+        TODO: Add E2E test for full pipeline:
+          - Insert frames into real database
+          - Run OCRWorker.run() for fixed duration
+          - Verify all frames transition from status 0→2 (done)
+          - Verify ocr_text is populated correctly
+          - Verify concurrent workers don't process same frame twice
+            (test FOR UPDATE SKIP LOCKED behavior)
+          - Measure processing throughput (frames/sec)
         """
         self.running = True
         logger.info(

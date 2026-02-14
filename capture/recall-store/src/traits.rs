@@ -198,3 +198,38 @@ pub trait Storage: Send + Sync {
         status: VisionStatus,
     ) -> Result<()>;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_vision_status_conversion() {
+        assert_eq!(VisionStatus::from(0), VisionStatus::Pending);
+        assert_eq!(VisionStatus::from(1), VisionStatus::Processed);
+        assert_eq!(VisionStatus::from(2), VisionStatus::Failed);
+        assert_eq!(VisionStatus::from(3), VisionStatus::Skipped);
+        assert_eq!(VisionStatus::from(99), VisionStatus::Pending); // Default
+
+        assert_eq!(VisionStatus::Pending.to_smallint(), 0);
+        assert_eq!(VisionStatus::Processed.to_smallint(), 1);
+        assert_eq!(VisionStatus::Failed.to_smallint(), 2);
+        assert_eq!(VisionStatus::Skipped.to_smallint(), 3);
+    }
+
+    #[test]
+    fn test_embedding_status_conversion() {
+        assert_eq!(EmbeddingStatus::from(0), EmbeddingStatus::Pending);
+        assert_eq!(EmbeddingStatus::from(1), EmbeddingStatus::Processed);
+        assert_eq!(EmbeddingStatus::from(2), EmbeddingStatus::Failed);
+        assert_eq!(EmbeddingStatus::from(3), EmbeddingStatus::Skipped);
+        assert_eq!(EmbeddingStatus::from(-1), EmbeddingStatus::Pending); // Default
+
+        assert_eq!(EmbeddingStatus::Pending.to_smallint(), 0);
+        assert_eq!(EmbeddingStatus::Processed.to_smallint(), 1);
+        assert_eq!(EmbeddingStatus::Failed.to_smallint(), 2);
+        assert_eq!(EmbeddingStatus::Skipped.to_smallint(), 3);
+    }
+}
+
+

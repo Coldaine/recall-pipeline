@@ -390,4 +390,52 @@ mod tests {
         metrics.frames_captured.fetch_add(10, Ordering::Relaxed);
         assert_eq!(metrics.frames_captured.load(Ordering::Relaxed), 10);
     }
+
+    #[tokio::test]
+    async fn test_pipeline_channel_communication() {
+        let config = PipelineConfig::default();
+        let mut channels = PipelineChannels::new(&config);
+
+        // Simulate capture task sending
+        let image = DynamicImage::new_rgb8(10, 10);
+        let msg = CaptureMessage {
+            image: image.clone(),
+            phash: 12345,
+            timestamp: Instant::now(),
+            monitor_id: 1,
+        };
+
+        channels.capture_tx.send(msg).await.unwrap();
+
+        // Dedup task receiving
+        let received = channels.capture_rx.recv().await.unwrap();
+        assert_eq!(received.phash, 12345);
+        assert_eq!(received.monitor_id, 1);
+
+        // Dedup task sending to storage
+        let storage_msg = StorageMessage {
+            image: received.image,
+            phash: received.phash as i64,
+            captured_at: Utc::now(),
+            monitor_id: received.monitor_id,
+        };
+        channels.storage_tx.send(storage_msg).await.unwrap();
+
+        // Storage task receiving
+        let stored = channels.storage_rx.recv().await.unwrap();
+        assert_eq!(stored.phash, 12345);
+    }
+
+    #[tokio::test]
+    async fn test_shutdown_signal_propagation() {
+        let (tx, mut rx) = tokio::sync::broadcast::channel(1);
+        
+        let tx_clone = tx.clone();
+        tokio::spawn(async move {
+            tx_clone.send(ShutdownSignal).unwrap();
+        });
+
+        let signal = rx.recv().await;
+        assert!(signal.is_ok());
+    }
 }

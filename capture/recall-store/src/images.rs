@@ -30,6 +30,8 @@ impl ImageStorage {
     ///
     /// Returns `(image_ref, file_size_bytes)` where `image_ref` is the
     /// relative path suitable for storing in the database.
+    ///
+    /// TODO: Add integration tests. See TESTING_TODOS_RUST.md section 3.3 for details.
     pub fn save_jpeg(
         &self,
         image: &DynamicImage,
@@ -112,6 +114,8 @@ impl ImageStorage {
     }
 
     /// Load a previously saved image by its `image_ref`.
+    ///
+    /// TODO: Add integration tests. See TESTING_TODOS_RUST.md section 3.3 for details.
     pub fn load_image(&self, image_ref: &str) -> Result<DynamicImage> {
         let path = self.base_path.join(image_ref);
         let img = image::open(&path)
@@ -122,6 +126,8 @@ impl ImageStorage {
     /// Delete date directories older than `retention_days`.
     ///
     /// Returns the number of files removed.
+    ///
+    /// TODO: Add integration tests. See TESTING_TODOS_RUST.md section 3.3 for details.
     pub fn cleanup_old_images(&self, retention_days: u32) -> Result<u64> {
         let cutoff = Utc::now() - chrono::Duration::days(retention_days as i64);
         let cutoff_date = cutoff.format("%Y-%m-%d").to_string();
