@@ -1,3 +1,12 @@
+# Auto-generated .gitattributes for cross-platform line ending consistency
+# Default: LF for all text files
+* text=auto eol=lf
 
-# Use bd merge for beads JSONL files
+# Windows scripts require CRLF
+*.ps1 text eol=crlf
+*.psm1 text eol=crlf
+
+# Preserved custom configuration
+
 .beads/issues.jsonl merge=beads
+
