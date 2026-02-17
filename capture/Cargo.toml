@@ -1,0 +1,26 @@
+[package]
+name = "recall-capture"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0"
+tokio = { version = "1.36", features = ["full", "tracing"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+chrono = { version = "0.4", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Image Processing
+image = "0.25"
+image-compare = "0.3" # Note: Screenpipe uses 0.4.1, checking compatibility
+
+# Screen Capture
+xcap = "0.8.1"
+
+# Database (for later)
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid"] }
+
+[dev-dependencies]
+tempfile = "3.10"
