@@ -1,4 +1,16 @@
+---
+last_edited: 2026-02-17
+editor: Antigravity (Claude-3.5-Sonnet)
+user: Coldaine
+status: ready
+version: 1.0.0
+subsystem: dev
+tags: [logging, observability, guidelines]
+doc_type: guide
+---
+
 # Logging Philosophy
+
 
 > **Context**: How we log in Recall Pipeline.
 

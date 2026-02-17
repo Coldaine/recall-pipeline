@@ -1,4 +1,16 @@
+---
+last_edited: 2026-02-17
+editor: Antigravity (Claude-3.5-Sonnet)
+user: Coldaine
+status: ready
+version: 1.0.0
+subsystem: architecture
+tags: [secrets, security, sops, age]
+doc_type: architecture
+---
+
 # Secrets Management
+
 
 We use **SOPS** (Secrets OPerationS) with **age** encryption to manage sensitive configuration values in this repository. This allows us to commit encrypted `.env` files to git while keeping the keys secure and portable.
 

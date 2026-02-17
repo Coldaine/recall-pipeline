@@ -88,11 +88,7 @@ def build_query(
     return main_query
 
 
-def update_timezone(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-    return wrapper
+
 
 
 

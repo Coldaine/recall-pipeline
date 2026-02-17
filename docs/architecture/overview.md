@@ -1,4 +1,16 @@
+---
+last_edited: 2026-02-17
+editor: Antigravity (Claude-3.5-Sonnet)
+user: Coldaine
+status: ready
+version: 1.0.0
+subsystem: architecture
+tags: [overview, design, components]
+doc_type: architecture
+---
+
 # System Architecture Overview
+
 
 > **Context**: High-level view of the Recall Pipeline system.
 

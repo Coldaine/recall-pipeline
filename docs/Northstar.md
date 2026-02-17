@@ -3,13 +3,14 @@ last_edited: 2026-02-14
 editor: Antigravity (Gemini)
 user: Coldaine
 status: ready
-version: 2.0.0
-subsystem: general
-tags: [vision, principles, northstar, architecture]
+version: 1.1.0
+subsystem: monorepo
+tags: [principles, strategy, northstar]
 doc_type: architecture
 ---
 
-# North Star: Foundational Principles & Vision
+# North Star Principles
+
 
 > **"Total digital recall + perfect AI context. Capture everything across all machines, summarize intelligently at multiple levels, make it searchable and usable as context for LLMs."**
 

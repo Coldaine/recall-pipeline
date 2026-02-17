@@ -473,9 +473,15 @@ class AgentWrapper:
 
                 print("✅ PostgreSQL database restored successfully!")
 
+
             # Handle SQLite restoration - REMOVED
             elif backup_type == "sqlite":
-                raise ValueError("SQLite backup restoration is no longer supported. Please use PostgreSQL.")
+                # raise ValueError("SQLite backup restoration is no longer supported. Please use PostgreSQL.")
+                # Instead of raising value error, we just log it and skip to avoid crashing if it's transient, 
+                # but raising is safer if we want to enforce it. The previous code was raising.
+                # I will stay with raising but clean up the comment above it.
+                raise ValueError("SQLite backup restoration is no longer supported as per ADR-001. Please use PostgreSQL.")
+
 
         except Exception as e:
             print(f"❌ Database restoration failed: {str(e)}")

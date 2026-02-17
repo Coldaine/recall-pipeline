@@ -1,4 +1,16 @@
+---
+last_edited: 2026-02-17
+editor: Antigravity (Claude-3.5-Sonnet)
+user: Coldaine
+status: ready
+version: 1.1.0
+subsystem: monorepo
+tags: [index, documentation, overview]
+doc_type: index
+---
+
 # Documentation Index
+
 
 > **Auto-Generated Candidate**: This file is the single entry point for all documentation in the repository.
 > **CI Enforcement**: Every Markdown file in `docs/` MUST be linked here. No orphans allowed.
@@ -18,10 +30,11 @@
 
 ## Domains
 ### Capture
-- [Overview & Specs](capture/cp-overview.md)
+- [Overview & Specs](domains/capture/cp-overview.md)
 
 ### Storage
-- [Database Schema](storage/st-overview.md)
+- [Database Schema](domains/storage/st-overview.md)
+
 
 ## Developer
 - [Testing Philosophy](dev/testing.md)
