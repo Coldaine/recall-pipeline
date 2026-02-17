@@ -10,7 +10,7 @@ from sqlalchemy.orm import (
     mapped_column,
 )
 
-from agents.utils.utc import utcnow
+from agents.utc import utcnow
 
 
 class Base(DeclarativeBase):

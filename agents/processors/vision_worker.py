@@ -184,6 +184,19 @@ class VisionWorker:
 
         Returns:
             Tuple of (base64_data_uri, mime_type) or None if loading fails.
+        
+        TODO: Add integration tests for base64 encoding:
+          - Test loading from file:// URI (absolute path)
+          - Test loading from relative path
+          - Test with missing file (should return None)
+          - Test with various image formats (PNG, JPEG, GIF, BMP)
+          - Test MIME type detection is correct
+          - Test with very large images (memory efficiency)
+          - Test base64 encoding correctness
+          - Test data URI format is valid for LLM APIs
+          - Verify insufficient permissions error handling
+          - Test concurrent loading of same file
+          - Verify error messages are logged
         """
         try:
             # Handle file:// URIs
@@ -224,6 +237,22 @@ class VisionWorker:
 
         Returns:
             Generated summary string or None on failure.
+        
+        TODO: Add integration tests for LLM Vision API calls:
+          - Test with real LLM API (requires API key)
+          - Test prompt formatting with various OCR text lengths
+          - Test with empty/None OCR text (fallback to "(no text detected)")
+          - Test response parsing for different LLM providers
+          - Test token counting is accurate
+          - Test max_tokens constraint is respected
+          - Test different vision_prompt templates
+          - Test with very long OCR text (> 1000 chars)
+          - Test timeout handling
+          - Test rate limiting behavior
+          - Test API error responses (auth, quota, service error)
+          - Verify summary quality is reasonable
+          - Measure API latency and costs
+          - Test recovery from transient failures
         """
         try:
             client = self._get_llm_client()
@@ -410,6 +439,27 @@ class VisionWorker:
 
         Continuously polls for OCR-processed frames and generates vision summaries.
         Runs until stopped via the running flag or KeyboardInterrupt.
+        
+        TODO: Add integration test for the polling loop:
+          - Test that worker continuously fetches OCR-done frames
+          - Test that batch_size is respected
+          - Test that poll_interval is respected between cycles
+          - Test graceful shutdown with asyncio.CancelledError
+          - Test recovery after database connection errors
+          - Test LLM client initialization is called once
+          - Test retry logic with exponential backoff
+          - Verify log output for debugging
+        
+        TODO: Add E2E test for full vision pipeline:
+          - Insert frames with ocr_text into real database
+          - Run VisionWorker.run() for fixed duration
+          - Verify all frames transition from status 2→4 (vision done)
+          - Verify vision_summary is populated correctly
+          - Verify rate_limit_delay is respected between LLM calls
+          - Verify concurrent workers don't process same frame twice
+          - Test with multiple LLM providers (gpt-4o, claude-3, etc.)
+          - Measure latency and throughput (summaries/min)
+          - Test cost tracking (tokens consumed)
         """
         self.running = True
         logger.info(

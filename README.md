@@ -1,14 +1,6 @@
 # Recall Pipeline
 
-Single-user, multi-deployment capture and memory system. Rust handles screen capture; Python handles orchestration and LLM processing.
+A modular pipeline for managing, processing, and recalling data or documents in a reproducible way.
 
-## Structure
+For full documentation, see [docs/index.md](docs/index.md).
 
-| Directory | Purpose |
-|-----------|---------|
-| `agents/` | Python memory agents, LLM workers, orchestration |
-| `capture/` | Rust capture engine (screen capture, phash dedup) |
-| `docs/` | Single source of truth for architecture |
-| `scripts/` | Utility scripts (DB setup, systemd) |
-
-Start here: `docs/README.md` for architecture, domains, dev practices, and project management.

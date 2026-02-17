@@ -25,7 +25,7 @@ import demjson3 as demjson
 import tiktoken
 from pathvalidate import sanitize_filename as pathvalidate_sanitize_filename
 
-from agents.utils.utc import utcnow
+from agents.utc import utcnow
 import agents
 from agents.constants import (
     CLI_WARNING_PREFIX,
