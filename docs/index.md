@@ -36,6 +36,10 @@ This document serves as the high-level entry point for the system architecture.
 - **[Capture](capture/cp-overview.md)**: Rust capture crate.
 - **[Orchestration](orchestration/or-overview.md)**: Workers & Routing.
 
+## 🛠 Developer
+- **[Testing Strategy](dev/testing.md)**: Categories, runner commands, CI.
+- **[Documentation Playbook](MasterDocumentationPlaybook.md)**: Governance.
+
 ## 📐 System at a Glance
 
 ```

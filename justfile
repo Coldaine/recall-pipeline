@@ -20,3 +20,34 @@ sync-tasks:
 # Maintain docs (full check)
 maintain-docs: validate-docs
     @echo "Documentation maintenance complete."
+
+# -----------------------------------------------------------------------------
+# Testing & Linting
+# -----------------------------------------------------------------------------
+
+# Run all tests (Rust unit + Python unit)
+test: test-rust test-python
+
+# Rust workspace tests (unit + db integration if DATABASE_URL set)
+test-rust:
+    cd capture && cargo test --workspace
+
+# Python tests via pytest
+test-python:
+    python -m pytest tests/ -v
+
+# Hardware tests (require a display + monitors)
+# Note: This captures actual screens. Do not run in headless CI without a virtual display.
+test-hw:
+    cd capture && cargo test --package recall-capture --test pipeline_integration -- --nocapture
+
+# Lint all
+lint: lint-rust lint-python
+
+# Rust clippy
+lint-rust:
+    cd capture && cargo clippy --workspace -- -D warnings
+
+# Python ruff
+lint-python:
+    python -m ruff check agents/ tests/
