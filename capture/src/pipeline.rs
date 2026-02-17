@@ -3,7 +3,6 @@ use crate::monitor::{get_monitor_by_id, SafeMonitor};
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use image::DynamicImage;
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info};
 
@@ -39,14 +38,14 @@ pub async fn continuous_capture(
     };
 
     let mut consecutive_failures = 0;
-    const MAX_RETRIES: u32 = 3;
+    const MAX_CONSECUTIVE_FAILURES: u32 = 10;
 
     loop {
         let capture_start = Instant::now();
-        let captured_at = Utc::now();
+        let _captured_at = Utc::now();
 
         // 1. Capture
-        let image = match capture_monitoring_safe(&mut monitor, monitor_id).await {
+        let image = match capture_monitoring_safe(&mut monitor).await {
             Ok(img) => {
                 consecutive_failures = 0;
                 img
@@ -54,7 +53,7 @@ pub async fn continuous_capture(
             Err(e) => {
                 consecutive_failures += 1;
                 error!("Capture failed ({}): {}", consecutive_failures, e);
-                if consecutive_failures > 10 {
+                if consecutive_failures > MAX_CONSECUTIVE_FAILURES {
                      return Err(anyhow::anyhow!("Too many consecutive capture failures"));
                 }
                 tokio::time::sleep(Duration::from_secs(1)).await;
@@ -92,7 +91,7 @@ pub async fn continuous_capture(
     }
 }
 
-async fn capture_monitoring_safe(monitor: &mut SafeMonitor, _monitor_id: u32) -> Result<DynamicImage> {
+async fn capture_monitoring_safe(monitor: &mut SafeMonitor) -> Result<DynamicImage> {
     for attempt in 0..3 {
         match monitor.capture_image().await {
             Ok(img) => return Ok(img),
@@ -106,5 +105,5 @@ async fn capture_monitoring_safe(monitor: &mut SafeMonitor, _monitor_id: u32) ->
             }
         }
     }
-    Err(anyhow::anyhow!("Failed into capture after retries"))
+    Err(anyhow::anyhow!("Failed to capture after retries"))
 }

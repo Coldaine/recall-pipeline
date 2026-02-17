@@ -2,7 +2,6 @@ use anyhow::{Error, Result};
 use image::DynamicImage;
 use std::fmt;
 use std::sync::Arc;
-use tracing;
 use xcap::Monitor as XcapMonitor;
 
 /// Error type for monitor listing
