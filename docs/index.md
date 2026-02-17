@@ -1,52 +1,42 @@
----
-last_edited: 2026-02-13
-editor: Claude Code (Claude Opus 4.5)
-user: Coldaine
-status: active
-version: 1.0.0
-subsystem: architecture
-tags: [index, vision, roadmap]
-doc_type: architecture
----
+# Documentation Index
 
-# Architecture Overview
+> **Auto-Generated Candidate**: This file is the single entry point for all documentation in the repository.
+> **CI Enforcement**: Every Markdown file in `docs/` MUST be linked here. No orphans allowed.
 
-**"Total digital recall + perfect AI context."**
+## Core
+- [Northstar Principles](Northstar.md)
+- [Master Documentation Playbook](MasterDocumentationPlaybook.md)
+- [Task Backlog](../todo.md)
 
-This document serves as the high-level entry point for the system architecture.
+## Architecture
+- [System Overview](architecture/overview.md)
+- [Roadmap](architecture/roadmap.md)
+- [ADR-001: PostgreSQL Only](architecture/adr-001.md)
+- [ADR-002: Pure Rust Stack](architecture/adr-002.md)
+- [ADR-003: Capture Rewrite from Screenpipe](architecture/adr-003.md)
+- [Secrets Management](architecture/secrets_management.md)
 
-## 🧭 Core Documentation
+## Domains
+### Capture
+- [Overview & Specs](capture/cp-overview.md)
 
-- **[North Star (Vision & Principles)](Northstar.md)**: The immutable "Why" and "How". Read this first.
-- **[Implementation Roadmap](roadmap.md)**: The active plan (6 Phases).
-- **[Task Backlog](todo.md)**: Single source of truth for active tasks.
-- **[Documentation Playbook](MasterDocumentationPlaybook.md)**: Governance.
+### Storage
+- [Database Schema](storage/st-overview.md)
 
-## 🏗️ key Decisions (ADRs)
+## Developer
+- [Testing Philosophy](dev/testing.md)
+- [Logging Philosophy](dev/logging.md)
 
-- **[ADR-003](architecture/adr-003.md)**: PostgreSQL Only (No SQLite)
-- **[ADR-009](architecture/adr-009.md)**: Pure Rust End-to-End
-- **[ADR-005](architecture/adr-005.md)**: MIRIX Agents
-- **[ADR-006](architecture/adr-006.md)**: Windows First
-- **[ADR-008](architecture/adr-008.md)**: Gradual Extraction
+## Archive
+- [Original Screenpipe Audit](archive/screenpipe-crate-audit.md)
 
-## 🏢 Domains
+## Configuration Index
+> **Context**: Root-level configuration files and hidden folders.
 
-- **[Storage](storage/st-overview.md)**: Schema, config.
-- **[Capture](capture/cp-overview.md)**: Rust capture crate.
-- **[Orchestration](orchestration/or-overview.md)**: Workers & Routing.
+- [`.gitignore`](../.gitignore): Defines what git ignores (target/, .env, etc.)
+- [`.vscode/`](../.vscode/): Editor settings (extensions, tasks, launch config).
+- [`justfile`](../justfile): Command runner (build, test, deploy).
+- [`Cargo.toml`](../capture/Cargo.toml): Rust workspace definition.
+- [`pyproject.toml`](../pyproject.toml): Python dependencies and tools.
+- [`AGENTS.md`](../AGENTS.md): Agent Instructions (System Prompt).
 
-## 📐 System at a Glance
-
-```
-DEPLOYMENTS (Clients)                    SERVER (Central)
-┌──────────────────────┐                ┌──────────────────────────┐
-│ Laptop / Desktop     │   HTTP POST    │ Postgres + pgvector      │
-│  - Rust Capture      │ ─────────────▶ │  - frames, summaries     │
-│  - Phash Dedup       │                │                          │
-│  (No Local DB)       │                │ Rust Workers (Lazy)      │
-└──────────────────────┘                │  - OCR, Vision, Summary  │
-                                        └───────────────────────────┘
-```
-
-See [Northstar.md](architecture/Northstar.md) for the detailed "Anti-Patterns" and "Schema Commandments".

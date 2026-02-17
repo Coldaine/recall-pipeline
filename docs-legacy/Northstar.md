@@ -1,9 +1,9 @@
 ---
-last_edited: 2026-02-14
-editor: Antigravity (Gemini)
+last_edited: 2026-02-13
+editor: Claude Code (Claude Opus 4.5)
 user: Coldaine
 status: ready
-version: 2.0.0
+version: 1.0.0
 subsystem: general
 tags: [vision, principles, northstar, architecture]
 doc_type: architecture
@@ -15,16 +15,14 @@ doc_type: architecture
 
 This document describes the immutable **North Star** for the Recall Pipeline. These principles are non-negotiable.
 
-## 1. Foundational Principles
+## 1. Foundational Principles (The "Above All Else" Rules)
 
-- **Single-User, Multi-Deployment**: One person, multiple machines. Data flows to a central server. **No multi-user tenancy.**
-- **PostgreSQL Only**: No SQLite. SQLite died from write contention. Single Postgres instance is the source of truth. (See [ADR-001](architecture/adr-001.md) for the full trade-off analysis.)
-- **Rust for Core; Python for Agents**: Capture and storage are Pure Rust. Agents (MIRIX) are first-class Python. No Python in the capture hot path. (See [ADR-002](architecture/adr-002.md) for details.)
-- **Lazy Processing**: Never block capture. OCR, vision, and summarization happen asynchronously on the server, or potentially locally (PHASE 2. ).
+- **Single-User, Multi-Deployment**: One person, multiple machines (laptop, desktop). Data flows to a central server. **No multi-user tenancy.**
+- **PostgreSQL Only**: No SQLite. SQLite died from write contention. Single Postgres instance is the source of truth.
+- **Pure Rust End-to-End**: (ADR-009) No Python in the production runtime. Rust for capture, storage, and logic. Python is for reference/prototyping only.
+- **Lazy Processing**: Never block capture. OCR, vision, and summarization happen asynchronously on the server.
 - **Hierarchical Summaries**: Drill down: Day → Project → Activity → Frame.
 - **Secure by Default**: Secrets must be redacted and stored encrypted (requiring FIDO2 key to decrypt).
-- **Windows 11 First**: The MVP targets Windows 11 exclusively. Mac/Linux support is deferred. (Formerly ADR-006.)
-
 
 ## 2. Direct Quotes (The User's Voice)
 
@@ -45,16 +43,14 @@ This document describes the immutable **North Star** for the Recall Pipeline. Th
 ❌ **Real-Time Processing on Device**: Too heavy for laptops; must be lazy.
 ❌ **Tight IPC Coupling**: Brittle; use DB as the boundary.
 ❌ **Multi-User Tenancy**: Scope creep; single user only.
-❌ **Inventing New Agent Architectures**: MIRIX exists; use it.
-❌ **Big-Bang Rewrites**: Extract gradually, one component at a time.
 
-## 4. Architecture Decision Records
+## 4. Architecture Decision Records (ADR Summary)
 
-Only decisions with significant, contested trade-offs get a full ADR:
-
-- [ADR-001: PostgreSQL Only](architecture/adr-001.md) — Rejected SQLite due to write contention.
-- [ADR-002: Pure Rust Stack](architecture/adr-002.md) — Rejected hybrid Python/Rust in production.
-- [ADR-003: Capture Rewrite from Screenpipe](architecture/adr-003.md) — Port upstream capture code rather than clean-room rewrite.
+- **ADR-003**: PostgreSQL only (No SQLite).
+- **ADR-005**: MIRIX Multi-Agent System (reuse, don't invent).
+- **ADR-006**: Windows 11 First (MVP).
+- **ADR-008**: Gradual Extraction (Safety > Speed).
+- **ADR-009**: Pure Rust Stack (Supersedes Python orchestration).
 
 ## 5. Storage Schema Commandments
 

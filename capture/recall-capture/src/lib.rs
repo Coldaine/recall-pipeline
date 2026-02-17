@@ -1,9 +1,14 @@
-pub mod capture;
-pub mod dedup;
-pub mod monitor;
-pub mod pipeline;
+pub fn add(left: u64, right: u64) -> u64 {
+    left + right
+}
 
-pub use pipeline::{
-    CaptureMessage, PipelineChannels, PipelineConfig, PipelineMetrics, StorageMessage,
-    ShutdownSignal,
-};
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let result = add(2, 2);
+        assert_eq!(result, 4);
+    }
+}

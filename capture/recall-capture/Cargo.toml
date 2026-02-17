@@ -1,15 +1,6 @@
 [package]
 name = "recall-capture"
-version = { workspace = true }
-edition = { workspace = true }
-license = { workspace = true }
-description = "Screen capture and frame deduplication for recall-pipeline"
+version = "0.1.0"
+edition = "2024"
 
 [dependencies]
-xcap = "0.8"
-image = { workspace = true }
-image-compare = "0.4"
-tokio = { workspace = true }
-anyhow = { workspace = true }
-tracing = { workspace = true }
-chrono = { workspace = true }

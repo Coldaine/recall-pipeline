@@ -1,1 +1,0 @@
-postgres://2d5fd542f24a3b2bfad3ab24656c24e418b0bf36d363265e6e17372177860447:sk_p3co5WQCJBZCrTa5UiUme@db.prisma.io:5432/postgres?sslmode=require

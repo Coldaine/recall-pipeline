@@ -27,7 +27,7 @@ This document is versioned. Changes to this playbook require a PR, review by the
 ### Guiding Principles
 
 - Centralized but flexible: `/docs` is the default home; exceptions are rare and documented.
-- **Strict Indexing**: `docs/index.md` MUST link to every Markdown file AND every major configuration file/folder.
+- Domain-oriented: docs mirror functional domains and crate boundaries for predictability.
 - Single source of truth: reduce duplication; use thin index pages to point to authoritative locations.
 - Automation-backed: CI enforces headers, placement, and retention; humans focus on content.
 - Ephemeral where appropriate: PR reports and investigation logs are short-lived unless promoted.
@@ -50,11 +50,14 @@ docs/
     editor.md                     # Editor/workspace conventions (e.g., .vscode)
 
 
-  domains/                        # Technical docs per functional domain (Recall Pipeline)
-    capture/                      # Rust capture crate (recall-capture)
-    storage/                      # Database & schema (recall-db, recall-store)
-    orchestration/                # Python agents & workers
-    ops/                          # Deployment & infrastructure
+  domains/                        # Technical docs per functional domain THSE DOMAINS ARE JUST EXAMPLE
+    audio/
+    vad/
+    stt/
+    text-injection/
+    telemetry/
+    gui/
+    foundation/
 
   plans/                          # One-off plans; active working docs
 
@@ -143,17 +146,17 @@ To keep domain file names readable yet unambiguous, each domain MUST define a sh
 - Folder names remain descriptive (e.g., `docs/domains/text-injection/`), the short code disambiguates files within the folder and across search results.
 - **Subdirectory rule**: Subdirectories within a domain folder (one level deep, e.g., `troubleshooting/`) should only be created when the domain contains more than 5 markdown files. Deeper nesting is discouraged unless absolutely necessary.
 
-Recommended examples for Capture (`domain_code: cp`):
+Recommended examples for Text Injection (`domain_code: ti`):
 
 ```
 docs/
   domains/
-    capture/
-      cp-overview.md
-      cp-architecture.md
-      cp-testing.md
+    text-injection/
+      ti-overview.md
+      ti-unified-clipboard.md
+      ti-testing.md
       troubleshooting/
-        cp-zero-frames.md
+        ti-clipboard-timeouts.md
 ```
 
 **Enforcement**: A pre-push hook MUST validate that files under `docs/domains/<domain>/` include the declared domain code in the filename. Example validator implementation: `scripts/validate_domain_docs_naming.py`.
@@ -200,7 +203,6 @@ Define the default lifecycle for transient documentation and where it should liv
  - CI/CD playbook MUST include two repository documentation structure visualizations:
    - A text-first outline version, and
    - A Mermaid diagram version with legend/labels; CI should validate both sections exist (syntax lint for Mermaid is sufficient).
-- **Orphan Check**: CI MUST fail if any `.md` file in `docs/` is not linked from `docs/index.md`.
 
 ## 7) Tasks & Backlog (Critical)
 
@@ -263,8 +265,8 @@ Validator (required):
 - This validator MUST be run as a pre-push hook (see §6.1.1).
 
 Example (from this repository):
-- Capture (`domain_code: cp`)
-  - Renamed: `overview.md` → `cp-overview.md`
+- Text Injection (`domain_code: ti`)
+  - Renamed: `overview.md` → `ti-overview.md`, `unified_clipboard.md` → `ti-unified-clipboard.md`, `testing.md` → `ti-testing.md`.
   - Git history preserved using copy→delete→git-mv workflow.
   - References in `docs/standards.md` and planning docs were updated.
 
@@ -280,7 +282,7 @@ user: Coldaine
 status: ready
 version: 1.0.0
 subsystem: ansible
-tags: [troubleshooting, capture, xcap, rust]
+tags: [troubleshooting, stt, voice-recognition]
 doc_type: troubleshooting
 ---
 ```
@@ -299,13 +301,13 @@ tags: [index, crate, audio]
 doc_type: index
 ---
 
-# crate: recall-capture (Index)
+# crate: coldvox-audio (Index)
 
-Authoritative docs live in: `../../../capture/recall-capture/README.md`
+Authoritative docs live in: `../../../crates/coldvox-audio/README.md`
 
 Key entry points:
-- Pipeline: `src/pipeline.rs`
-- Monitor: `src/monitor.rs`
+- Capture: `src/capture.rs`
+- Chunking: `src/chunker.rs`
 ```
 
 ### 11.3 PR Report (ephemeral) example
@@ -356,7 +358,3 @@ A: Yes—for domains, operations, or other areas. Exception: do NOT create proje
   - Updated migration flow to reflect mandatory validation (§10.2.1)
 - 1.0.0 (2025‑10‑19)
   - Initial canonical version: structure, headers, placement rules, retention, PR hygiene, tasks backlog policy, file watcher + CI enforcement.
-- 2.0.0 (2026-02-14)
-  - **Migration**: Adapted for Recall Pipeline repository.
-  - Updated examples to match Capture/Storage/Orchestration domains.
-  - Removed outdated references to ColdVox/STT/Text Injection.
