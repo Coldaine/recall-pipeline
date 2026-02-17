@@ -55,6 +55,7 @@ pub struct ShutdownSignal;
 // ---------------------------------------------------------------------------
 
 /// Metrics for monitoring pipeline health.
+/// TODO: [METRICS] Add per-monitor metrics (currently global only)
 #[derive(Debug, Default)]
 pub struct PipelineMetrics {
     /// Total frames captured (before dedup).
@@ -155,6 +156,7 @@ impl PipelineChannels {
 // ---------------------------------------------------------------------------
 
 /// Minimum difference threshold below which frames are considered duplicates.
+/// TODO: [CONFIG] Make this configurable per-monitor (currently hardcoded)
 const DEDUP_THRESHOLD: f64 = 0.006;
 
 /// Run a capture task for a single monitor.
@@ -162,6 +164,9 @@ const DEDUP_THRESHOLD: f64 = 0.006;
 /// This task continuously captures frames from the monitor and sends them
 /// to the capture channel. It performs in-memory deduplication against
 /// the previous frame to avoid processing identical frames.
+///
+/// TODO: [PERF] Support per-monitor configuration (FPS, dedup threshold, max_inactive_secs)
+/// TODO: [PERF] Implement max_inactive_secs to force capture even if deduped
 pub async fn run_capture_task(
     monitor: SafeMonitor,
     capture_tx: Sender<CaptureMessage>,

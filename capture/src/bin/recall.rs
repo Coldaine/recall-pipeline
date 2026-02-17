@@ -14,6 +14,7 @@ use recall_capture::{
 use recall_store::{create_storage, ImageStorage, Storage};
 
 /// Recall capture daemon -- screenshots, dedup, store.
+/// TODO: [CONFIG] Replace CLI args with config file (TOML/YAML) for per-monitor settings
 #[derive(Parser, Debug)]
 #[command(name = "recall", version, about)]
 struct Args {
@@ -21,7 +22,7 @@ struct Args {
     #[arg(long, default_value = "/var/lib/recall/data")]
     data_dir: PathBuf,
 
-    /// Capture rate in frames per second
+    /// Capture rate in frames per second (global, TODO: per-monitor)
     #[arg(long, default_value_t = 0.5)]
     fps: f64,
 
@@ -44,6 +45,9 @@ struct Args {
     /// Storage channel capacity
     #[arg(long, default_value_t = 32)]
     storage_channel_capacity: usize,
+    
+    /// TODO: [CONFIG] Config file path (e.g., ~/.config/recall.toml)
+    /// Will allow per-monitor: fps, dedup_threshold, enabled, max_inactive_secs
 }
 
 #[tokio::main]
@@ -87,6 +91,7 @@ async fn main() -> Result<()> {
     info!(deployment_id = %deployment_id, "Identified deployment");
 
     // Discover monitors
+    // TODO: [CONFIG] Filter monitors based on config (enabled flag, name/id matching)
     let monitors = list_monitors()
         .await
         .context("Failed to list monitors")?;
@@ -146,6 +151,7 @@ async fn main() -> Result<()> {
     let (shutdown_tx, _) = tokio::sync::broadcast::channel::<ShutdownSignal>(1);
 
     // Spawn capture tasks (one per monitor)
+    // TODO: [CONFIG] Pass per-monitor config (fps, dedup_threshold, max_inactive_secs)
     let mut capture_handles = Vec::new();
     for monitor in monitors {
         let capture_tx = channels.capture_tx.clone();
@@ -300,6 +306,8 @@ async fn run_capture_task(
                 let phash = phash64(&image);
                 metrics.frames_captured.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
 
+                // TODO: [BUG] Use actual capture time, not current wall-clock time
+                // Currently timestamp (Instant) is unused; captured_at uses Utc::now() (line 356)
                 let msg = CaptureMessage {
                     image: image.clone(),
                     phash,
@@ -350,6 +358,7 @@ async fn run_dedup_task(
             msg = capture_rx.recv() => {
                 match msg {
                     Some(frame) => {
+                        // TODO: [BUG] Convert frame.timestamp (Instant) to Utc (captured_at should reflect actual capture time)
                         let storage_msg = StorageMessage {
                             image: frame.image,
                             phash: frame.phash as i64,
