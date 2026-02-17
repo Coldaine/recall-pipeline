@@ -36,6 +36,12 @@ This document serves as the high-level entry point for the system architecture.
 - **[Capture](capture/cp-overview.md)**: Rust capture crate.
 - **[Orchestration](orchestration/or-overview.md)**: Workers & Routing.
 
+## 📋 Plans
+
+- **[MIRIX Agent Patterns](plans/mirix-agent-patterns.md)**: Extracted architectural patterns from `agents/` (pre-deletion reference)
+- **[Schema Unification](plans/schema-unification-plan.md)**: Schema unification plan
+- **[Consolidation 2025-11](plans/consolidation-2025-11.md)**: November 2025 consolidation
+
 ## 🛠 Developer
 - **[Testing Strategy](dev/testing.md)**: Categories, runner commands, CI.
 - **[Documentation Playbook](MasterDocumentationPlaybook.md)**: Governance.
