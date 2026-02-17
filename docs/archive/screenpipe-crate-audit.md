@@ -1,4 +1,16 @@
-# Screenpipe Crate Audit & Removal Plan
+---
+last_edited: 2026-02-17
+editor: Antigravity (Claude-3.5-Sonnet)
+user: Coldaine
+status: deprecated
+version: 1.0.0
+subsystem: archive
+tags: [screenpipe, audit, legacy]
+doc_type: reference
+---
+
+# Screenpipe Crate Audit
+ & Removal Plan
 
 **Date**: 2025-11-28
 **Status**: In Progress
