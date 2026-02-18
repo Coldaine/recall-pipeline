@@ -1,92 +1,71 @@
----
-last_edited: 2026-02-17
-editor: Claude Code (Claude Opus 4.5)
-user: Coldaine
-status: ready
-version: 1.0.0
-subsystem: dev
-tags: [testing, rust, python, ci, guide]
-doc_type: guide
----
-
 # Testing Strategy
 
-This document outlines the testing strategy for the Recall Pipeline monorepo. It covers Rust (Capture/Storage), Python (Agents/OCR), and cross-component integration.
+> **Philosophy**: We rely on a **Local-First Tiered Testing** strategy. Because cloud CI can be flaky or blocked, developers must verify quality *locally* before pushing.
 
-## 1. Test Categories
+## 🏆 The Three Tiers
 
-We categorize tests into three levels:
+All code changes must pass these gates.
 
-1.  **Unit Tests** (Fast, No External Deps)
-    - **Rust**: Inline `#[test]` functions within `src/`.
-    - **Python**: `pytest` tests in `tests/` mocking external calls.
-    - **Goal**: Verify logic, parsing, configuration, and data models.
-    - **Run**: Always (Local & CI).
+### 🟢 Tier 1: Syntax & Style (Fast)
+**When:** Pre-commit / On-save.
+**Time Budget:** < 5 seconds.
+**Command:**
+```bash
+just lint
+# Runs: cargo fmt --check && cargo clippy -- -D warnings
+```
 
-2.  **Database Integration Tests** (Requires Postgres)
-    - **Rust**: Integration tests in `capture/*/tests/*.rs`.
-    - **Python**: `pytest` tests marked with `integration`.
-    - **Mechanism**: Gated by `DATABASE_URL` environment variable.
-    - **Run**:
-        - **Local**: Run if you have a local DB (`just test` auto-detects).
-        - **CI**: Run via Service Container + GitHub Secrets.
+### 🟡 Tier 2: Logic & Units (Medium)
+**When:** Pre-push.
+**Time Budget:** < 1 minute.
+**Command:**
+```bash
+just test-unit
+# Runs: cargo test --lib --workspace
+```
+**Scope:**
+- Pure functions (math, parsing, dedup logic).
+- Mocks for DB/Network.
+- **NO** requires running services (Postgres).
 
-3.  **Hardware Isolation Tests** (Requires Display)
-    - **Rust**: `capture/recall-capture/tests/pipeline_integration.rs`.
-    - **Goal**: Verify screen capture on actual hardware.
-    - **Run**:
-        - **Local**: Explicitly via `just test-hw`.
-        - **CI**: Skipped (headless runners lack displays).
+### 🔴 Tier 3: Integration & System (Slow)
+**When:** Before opening a PR / Pre-Merge.
+**Time Budget:** < 5 minutes.
+**Command:**
+```bash
+just test-int
+# Runs: cargo test --test '*' --workspace
+```
+**Requirements:**
+- Local Docker container with Postgres + pgvector + TimescaleDB.
+- `DATABASE_URL` set in `.env`.
+- Validates full pipeline: Capture -> DB -> Query.
 
-## 2. Running Tests
+---
 
-We use `just` as the unified test runner.
+## 🐛 Debugging Guide
 
-| Command | Description | Prerequisites |
-|---------|-------------|---------------|
-| `just test` | Run all Unit + DB Integration tests | `DATABASE_URL` (optional) |
-| `just test-rust` | Run only Rust workspace tests | Rust toolchain, `DATABASE_URL` (optional) |
-| `just test-python` | Run only Python `pytest` suite | Python venv |
-| `just test-hw` | Run Hardware Capture tests | **Physical Display** |
+### "The Timestamp Bug" Regression Test
+Ensure timestamps are preserved:
+```bash
+cargo test --package recall-capture --test pipeline_integrity
+```
 
-### Environment Setup
+### Mocking Strategies
+- **Database:** Use `sqlx::test` for integration tests. Use traits/mocks for unit tests.
+- **Time:** Never call `Instant::now()` directly in logic. Accept time as an argument or use a `Clock` trait.
+- **Filesystem:** Use `tempfile` crate for file I/O tests.
 
-#### Database Tests
-To run database integration tests locally:
-1. Start Postgres (e.g., via Docker):
-   ```bash
-   docker run --name recall-db -e POSTGRES_PASSWORD=recall -p 5432:5432 -d postgres:16
-   ```
-2. Set the environment variable:
-   ```powershell
-   $env:DATABASE_URL="postgresql://recall:recall@localhost:5432/recall"
-   ```
-3. Run tests:
-   ```bash
-   just test-rust
-   ```
-   *Tests will automatically skips if `DATABASE_URL` is unset.*
+---
 
-## 3. Structure & Conventions
+## 📈 Performance Benchmarks
 
-### Rust
-- **Unit Tests**: Place in the same file as the code module (`mod tests`).
-- **Integration Tests**: Place in `tests/` directory at the crate root.
-- **Data**: Use `recall-db` migrations to set up schema; wrap tests in transactions that roll back OR use unique IDs/deployments to avoid collisions.
+Run benchmarks to ensure we stay within budget:
+```bash
+cargo bench
+```
 
-### Python
-- **Location**: `tests/` at the repo root.
-- **Runner**: `pytest`.
-- **Fixtures**: Defined in `tests/conftest.py`.
-- **Gating**: Use the `db_url` fixture to skip tests requiring a database.
-
-## 4. CI Strategy
-
-Our GitHub Actions workflow handles tests as follows:
-
-1.  **Lint & Format**: Runs `cargo fmt`, `clippy`, `ruff` first.
-2.  **Unit Tests**: Runs `cargo test --lib` and `pytest` (excluding integration).
-3.  **Integration Tests**:
-    - **Services**: Spins up a Postgres service container.
-    - **Secrets**: Injects `DATABASE_URL` from repository secrets.
-    - **Execution**: Runs `cargo test --test '*'` to execute integration suites.
+**Key Metrics to Watch:**
+- Hash calculation time (target: < 1ms)
+- Dedup comparison time (target: < 0.1ms)
+- DB Insert throughput (target: > 1000 rows/sec)

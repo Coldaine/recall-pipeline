@@ -12,6 +12,13 @@ requires-python = ">=3.10"
 license = { text = "Proprietary" }
 dependencies = [
     "requests>=2.28",
+    "anthropic>=0.3.0",
+    "pytesseract",
+    "asyncpg",
+    "pydantic",
+    "Pillow",
+    "tiktoken",
+    "openai",
 ]
 
 [project.optional-dependencies]

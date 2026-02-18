@@ -16,6 +16,7 @@
     3.  **Intelligence (Python/Rust)**: Lazy, async agents processing frames from Postgres.
 
 ## 3. Operations
+- **Steering**: Follow the [`./docs/plans/implementation-roadmap.md`](./docs/plans/implementation-roadmap.md) for phased execution.
 - **Tasks**: Check [`./todo.md`](./todo.md) for the active backlog.
 - **Maintenance**: Run `just maintain-docs` to validate structure (see [`./Justfile`](./Justfile)).
 - **Testing**: Run `just test` to run all tests. See [`./docs/dev/testing.md`](./docs/dev/testing.md) for strategy.
