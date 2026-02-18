@@ -2,7 +2,6 @@ use image::imageops::FilterType;
 use image::DynamicImage;
 use image_compare::Metric;
 use std::hash::{DefaultHasher, Hash, Hasher};
-use tracing::debug;
 
 #[derive(Debug, Clone)]
 pub struct FrameComparisonConfig {
@@ -123,9 +122,8 @@ impl FrameComparer {
         let diff = if self.config.single_metric {
             compare_histogram(prev_img, &curr_img).unwrap_or(1.0)
         } else {
-            let histogram_diff = compare_histogram(prev_img, &curr_img).unwrap_or(1.0);
             // SSIM omitted for simplicity in port, as single_metric is default TRUE in screenpipe
-            histogram_diff
+            compare_histogram(prev_img, &curr_img).unwrap_or(1.0)
         };
 
         self.update_previous_internal(current_image, current_downscaled, current_hash);
@@ -163,4 +161,76 @@ pub fn compare_histogram(image1: &DynamicImage, image2: &DynamicImage) -> anyhow
     }
     image_compare::gray_similarity_histogram(Metric::Hellinger, &image_one, &image_two)
         .map_err(|e| anyhow::anyhow!("Failed to compare images: {}", e))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use image::{ImageBuffer, Rgb};
+
+    fn solid_rgb(width: u32, height: u32, r: u8, g: u8, b: u8) -> DynamicImage {
+        let buf = ImageBuffer::from_pixel(width, height, Rgb([r, g, b]));
+        DynamicImage::ImageRgb8(buf)
+    }
+
+    #[test]
+    fn test_first_frame_returns_one() {
+        let mut comparer = FrameComparer::new(FrameComparisonConfig::default());
+        let img = solid_rgb(64, 64, 100, 100, 100);
+        let result = comparer.compare(&img);
+        assert_eq!(result, 1.0, "First frame should always return 1.0 (no previous to compare)");
+    }
+
+    #[test]
+    fn test_identical_frame_hash_early_exit() {
+        let mut comparer = FrameComparer::new(FrameComparisonConfig {
+            hash_early_exit: true,
+            ..Default::default()
+        });
+        let img = solid_rgb(64, 64, 128, 128, 128);
+        comparer.compare(&img); // seed previous
+        let result = comparer.compare(&img); // same image bytes → same hash
+        assert_eq!(result, 0.0, "Identical frame must return 0.0 via hash early exit");
+    }
+
+    #[test]
+    fn test_different_frames_return_nonzero() {
+        let mut comparer = FrameComparer::new(FrameComparisonConfig::default());
+        let black = solid_rgb(64, 64, 0, 0, 0);
+        let white = solid_rgb(64, 64, 255, 255, 255);
+        comparer.compare(&black); // seed previous
+        let result = comparer.compare(&white);
+        assert!(result > 0.0, "Visually different frames must return a positive difference");
+    }
+
+    #[test]
+    fn test_compare_histogram_identical_images() {
+        let img = solid_rgb(32, 32, 80, 80, 80);
+        let result = compare_histogram(&img, &img).expect("histogram compare failed");
+        // image-compare 0.4 returns a distance (0.0 = identical, higher = more different)
+        assert!(result <= 0.01, "Identical images should have near-zero distance: {}", result);
+    }
+
+    #[test]
+    fn test_compare_histogram_different_sizes_auto_resize() {
+        let large = solid_rgb(64, 64, 200, 200, 200);
+        let small = solid_rgb(32, 32, 200, 200, 200);
+        let result = compare_histogram(&large, &small)
+            .expect("histogram compare with size mismatch failed");
+        // Same colour at different sizes — after resize they are identical, distance should be near 0
+        assert!(result <= 0.05, "Same-colour images at different sizes should have near-zero distance: {}", result);
+    }
+
+    #[test]
+    fn test_hash_early_exit_disabled_still_compares() {
+        let mut comparer = FrameComparer::new(FrameComparisonConfig {
+            hash_early_exit: false,
+            ..Default::default()
+        });
+        let img = solid_rgb(64, 64, 64, 64, 64);
+        comparer.compare(&img); // seed previous
+        let result = comparer.compare(&img); // should still detect similarity via histogram
+        assert!(result >= 0.0, "Result must be a valid similarity score");
+        assert!(result <= 1.0, "Result must not exceed 1.0");
+    }
 }

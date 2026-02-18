@@ -16,7 +16,7 @@ doc_type: guide
 
 ## Principles
 1.  **Structured logging**: Use `tracing` crate (Rust) and `structlog` (Python).
-2.  ** Levels**:
+2.  **Levels**:
     - `ERROR`: Wake up operator.
     - `WARN`: Actionable but not critical.
     - `INFO`: Key lifecycle events (startup, shutdown, summary stats).

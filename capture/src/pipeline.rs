@@ -10,6 +10,7 @@ pub struct CaptureEvent {
     pub image: DynamicImage,
     pub timestamp: DateTime<Utc>,
     pub frame_number: u64,
+    pub deployment_id: String,
 }
 
 pub async fn continuous_capture(

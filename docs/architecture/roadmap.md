@@ -11,7 +11,6 @@ doc_type: plan
 # Implementation Roadmap
 
 > See `docs/architecture/overview.md` for the overall vision and architecture.
-> See `docs/architecture/code-inventory.md` for what code exists and its status.
 
 ## Phase Summary
 

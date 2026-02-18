@@ -14,7 +14,7 @@ serde_json = "1.0"
 
 # Image Processing
 image = "0.25"
-image-compare = "0.3" # Note: Screenpipe uses 0.4.1, checking compatibility
+image-compare = "0.4"
 
 # Screen Capture
 xcap = "0.8.1"
