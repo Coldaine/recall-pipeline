@@ -1,8 +1,9 @@
 {
   "$schema": "https://mcp.dev/schema",
   "mcpServers": {
-    "supermemory": {
-      "url": "https://mcp.supermemory.ai/mcp"
+    "automem": {
+      "command": "npx",
+      "args": ["-y", "@verygoodplugins/mcp-automem"]
     },
     "context7": {
       "command": "npx",
@@ -10,3 +11,4 @@
     }
   }
 }
+
