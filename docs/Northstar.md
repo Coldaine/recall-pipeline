@@ -56,6 +56,7 @@ Only decisions with significant, contested trade-offs get a full ADR:
 - [ADR-001: PostgreSQL Only](architecture/adr-001.md) — Rejected SQLite due to write contention.
 - [ADR-002: Pure Rust Stack](architecture/adr-002.md) — Rejected hybrid Python/Rust in production.
 - [ADR-003: Capture Rewrite from Screenpipe](architecture/adr-003.md) — Port upstream capture code rather than clean-room rewrite.
+- [ADR-004: Hooks-as-Primitives Development Harness](architecture/adr-004.md) — Hooks are the universal primitive for development automation; recall-pipeline is the test bed.
 
 ## 5. Storage Schema Commandments
 

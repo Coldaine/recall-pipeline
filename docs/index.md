@@ -26,6 +26,7 @@ doc_type: index
 - [ADR-001: PostgreSQL Only](architecture/adr-001.md)
 - [ADR-002: Pure Rust Stack](architecture/adr-002.md)
 - [ADR-003: Capture Rewrite from Screenpipe](architecture/adr-003.md)
+- [ADR-004: Hooks-as-Primitives Development Harness](architecture/adr-004.md)
 - [Secrets Management](architecture/secrets_management.md)
 
 ## Domains
@@ -39,6 +40,7 @@ doc_type: index
 ## Developer
 - [Testing Philosophy](dev/testing.md)
 - [Logging Philosophy](dev/logging.md)
+- [Claude Code Hooks Operational Guide](dev/hooks-harness.md)
 
 ## Archive
 - [Original Screenpipe Audit](archive/screenpipe-crate-audit.md)
